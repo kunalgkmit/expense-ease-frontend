@@ -6,7 +6,7 @@ export default function RootLayout() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack/>
+        <Stack />
       </Stack>
 
       <StatusBar style="auto" />
