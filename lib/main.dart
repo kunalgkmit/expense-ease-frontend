@@ -1,4 +1,5 @@
 import 'package:expense_ease_flutter/sample.dart';
+import 'package:expense_ease_flutter/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const Sample(),
+      home: LoginScreen(),
     );
   }
 }
