@@ -54,4 +54,28 @@ class ApiService {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
+
+  static Future<Map<String, dynamic>> logout(String refreshToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/logout'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'refreshToken=$refreshToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Logout successful'};
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': errorData['message'] ?? 'Logout failed',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
 }

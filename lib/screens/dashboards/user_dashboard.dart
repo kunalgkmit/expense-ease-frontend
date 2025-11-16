@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:expense_ease_flutter/providers/auth_provider.dart';
 import 'package:expense_ease_flutter/screens/login_screen.dart';
 import 'package:expense_ease_flutter/services/transaction_service.dart';
@@ -71,7 +70,6 @@ class _UserDashboardState extends State<UserDashboard> {
         setState(() {
           _totalBalance = data['totalBalance'] ?? 0;
           _totalIncome = data['totalIncome'] ?? 0;
-          // Backend returns negative expense, convert to positive for display
           _totalExpense = (data['totalExpense'] ?? 0).abs();
         });
       } else {
@@ -194,7 +192,6 @@ class _UserDashboardState extends State<UserDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Balance Card Widget
                       BalanceCard(
                         totalBalance: _totalBalance,
                         totalIncome: _totalIncome,
@@ -202,7 +199,6 @@ class _UserDashboardState extends State<UserDashboard> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Recent Transactions Header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -222,7 +218,6 @@ class _UserDashboardState extends State<UserDashboard> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Transactions List
                       _transactions.isEmpty
                           ? Center(
                               child: Padding(
