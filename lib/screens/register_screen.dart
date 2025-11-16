@@ -47,10 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           );
 
-          // Navigate back to login screen
           Navigator.pop(context);
         } else {
-          // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message'] ?? 'Registration failed'),

@@ -1,9 +1,10 @@
+import 'package:expense_ease_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 class BalanceCard extends StatelessWidget {
-  final double totalBalance;
-  final double totalIncome;
-  final double totalExpense;
+  final num totalBalance;
+  final num totalIncome;
+  final num totalExpense;
 
   const BalanceCard({
     Key? key,
@@ -31,7 +32,7 @@ class BalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '₹${totalBalance.toStringAsFixed(2)}',
+              formatCurrency(totalBalance),
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
@@ -71,7 +72,7 @@ class BalanceCard extends StatelessWidget {
 
   Widget _buildIncomeExpenseCard({
     required String label,
-    required double amount,
+    required num amount,
     required Color backgroundColor,
     required Color iconColor,
     required Color textColor,
@@ -104,7 +105,7 @@ class BalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '₹${amount.toStringAsFixed(2)}',
+              formatCurrency(amount),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

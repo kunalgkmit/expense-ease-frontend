@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:expense_ease_flutter/providers/auth_provider.dart';
 import 'package:expense_ease_flutter/screens/login_screen.dart';
+import 'package:expense_ease_flutter/services/transaction_service.dart';
 import 'package:expense_ease_flutter/widgets/add_transaction_dialog.dart';
 import 'package:expense_ease_flutter/widgets/balance_card_widget.dart';
 import 'package:expense_ease_flutter/widgets/delete_confirmation_dialog.dart';
@@ -16,32 +19,125 @@ class UserDashboard extends StatefulWidget {
 }
 
 class _UserDashboardState extends State<UserDashboard> {
-  final double _totalBalance = 15000.00;
-  final double _totalIncome = 25000.00;
-  final double _totalExpense = 10000.00;
+  bool _isLoading = true;
+  num _totalBalance = 0;
+  num _totalIncome = 0;
+  num _totalExpense = 0;
+  List<Map<String, dynamic>> _transactions = [];
 
-  final List<Map<String, dynamic>> _transactions = [
-    {'title': 'Salary', 'amount': 50000.0, 'type': 'income'},
-    {'title': 'Groceries', 'amount': 2500.0, 'type': 'expense'},
-    {'title': 'Rent', 'amount': 15000.0, 'type': 'expense'},
-    {'title': 'Freelance Work', 'amount': 8000.0, 'type': 'income'},
-    {'title': 'Electricity Bill', 'amount': 1200.0, 'type': 'expense'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await Future.wait([_loadSummary(), _loadRecentTransactions()]);
+    } catch (e) {
+      log(e.toString());
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _loadSummary() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.userId ?? '';
+      final token = authProvider.accessToken ?? '';
+
+      print('Loading summary for userId: $userId');
+
+      final result = await TransactionService.getSummary(
+        userId: userId,
+        token: token,
+      );
+
+      print('Summary result: $result');
+
+      if (!mounted) return;
+
+      if (result['success']) {
+        final data = result['data'];
+        setState(() {
+          _totalBalance = data['totalBalance'] ?? 0;
+          _totalIncome = data['totalIncome'] ?? 0;
+          // Backend returns negative expense, convert to positive for display
+          _totalExpense = (data['totalExpense'] ?? 0).abs();
+        });
+      } else {
+        print('Failed to load summary: ${result['message']}');
+      }
+    } catch (e) {
+      print('Error loading summary: $e');
+    }
+  }
+
+  Future<void> _loadRecentTransactions() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.userId ?? '';
+      final token = authProvider.accessToken ?? '';
+
+      print('Loading recent transactions for userId: $userId');
+
+      final result = await TransactionService.getRecentTransactions(
+        userId: userId,
+        token: token,
+      );
+
+      print('Recent transactions result: $result');
+
+      if (!mounted) return;
+
+      if (result['success']) {
+        final List<dynamic> transactions = result['data'];
+        setState(() {
+          _transactions = transactions.map((t) {
+            return {
+              'id': t['id'] ?? '',
+              'title': t['title'] ?? '',
+              'amount': double.tryParse(t['amount'] ?? 0) ?? 0,
+            };
+          }).toList();
+        });
+        print('Loaded ${_transactions.length} transactions');
+      } else {
+        print('Failed to load transactions: ${result['message']}');
+      }
+    } catch (e) {
+      print('Error loading transactions: $e');
+    }
+  }
 
   void _showAddTransactionDialog() {
     showDialog(
       context: context,
-      builder: (context) => const AddTransactionDialog(),
+      builder: (context) => AddTransactionDialog(onSuccess: _loadAllData),
     );
   }
 
   void _showEditDialog(Map<String, dynamic> transaction) {
+    final num amount = transaction['amount'];
+    final type = amount > 0 ? 'income' : 'expense';
+
     showDialog(
       context: context,
       builder: (context) => EditTransactionDialog(
+        transactionId: transaction['id'],
         title: transaction['title'],
-        amount: transaction['amount'],
-        type: transaction['type'],
+        amount: amount,
+        type: type,
+        onSuccess: _loadAllData,
       ),
     );
   }
@@ -50,15 +146,9 @@ class _UserDashboardState extends State<UserDashboard> {
     showDialog(
       context: context,
       builder: (context) => DeleteConfirmationDialog(
+        transactionId: transaction['id'],
         transactionTitle: transaction['title'],
-        onConfirm: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Transaction deleted!'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
+        onSuccess: _loadAllData,
       ),
     );
   }
@@ -93,44 +183,98 @@ class _UserDashboardState extends State<UserDashboard> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              BalanceCard(
-                totalBalance: _totalBalance,
-                totalIncome: _totalIncome,
-                totalExpense: _totalExpense,
-              ),
-              const SizedBox(height: 24),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadAllData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Balance Card Widget
+                      BalanceCard(
+                        totalBalance: _totalBalance,
+                        totalIncome: _totalIncome,
+                        totalExpense: _totalExpense,
+                      ),
+                      const SizedBox(height: 24),
 
-              const Text(
-                'Recent Transactions',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
+                      // Recent Transactions Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Recent Transactions',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.refresh),
+                            onPressed: _loadAllData,
+                            tooltip: 'Refresh',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
 
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = _transactions[index];
-                  return TransactionItem(
-                    title: transaction['title'],
-                    amount: transaction['amount'],
-                    type: transaction['type'],
-                    onEdit: () => _showEditDialog(transaction),
-                    onDelete: () => _showDeleteDialog(transaction),
-                  );
-                },
+                      // Transactions List
+                      _transactions.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.receipt_long_outlined,
+                                      size: 64,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No transactions yet',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton.icon(
+                                      onPressed: _showAddTransactionDialog,
+                                      icon: const Icon(Icons.add),
+                                      label: const Text(
+                                        'Add your first transaction',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _transactions.length,
+                              itemBuilder: (context, index) {
+                                final transaction = _transactions[index];
+                                return TransactionItem(
+                                  id: transaction['id'],
+                                  title: transaction['title'],
+                                  amount: transaction['amount'],
+                                  onEdit: () => _showEditDialog(transaction),
+                                  onDelete: () =>
+                                      _showDeleteDialog(transaction),
+                                );
+                              },
+                            ),
+                    ],
+                  ),
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

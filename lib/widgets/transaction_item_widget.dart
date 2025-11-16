@@ -1,24 +1,26 @@
+import 'package:expense_ease_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 class TransactionItem extends StatelessWidget {
+  final String id;
   final String title;
-  final double amount;
-  final String type;
+  final num amount;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const TransactionItem({
     Key? key,
+    required this.id,
     required this.title,
     required this.amount,
-    required this.type,
     required this.onEdit,
     required this.onDelete,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = type == 'income';
+    final isIncome = amount > 0;
+    final displayAmount = amount.abs();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -45,7 +47,7 @@ class TransactionItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '₹${amount.toStringAsFixed(2)}',
+              formatCurrency(displayAmount),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
