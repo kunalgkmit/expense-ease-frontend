@@ -99,14 +99,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _usernameController,
                     enabled: !_isLoading,
                     decoration: const InputDecoration(
-                      labelText: 'Username',
-                      hintText: 'Enter your username',
+                      labelText: 'Name',
+                      hintText: 'Enter your name',
                       prefixIcon: Icon(Icons.person_outlined),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a username';
+                        return 'Please enter a name';
                       }
                       if (value.length < 3) {
                         return 'Username must be at least 3 characters';

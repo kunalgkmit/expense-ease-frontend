@@ -88,7 +88,7 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Delete'),
+              : const Text('Delete', style: TextStyle(color: Colors.white)),
         ),
       ],
     );

@@ -135,24 +135,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.deepPurple.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${_users.length} users',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.deepPurple.shade700,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 12),

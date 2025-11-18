@@ -27,6 +27,15 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void clearForm() {
+    _emailController.clear();
+    _passwordController.clear();
+    _formKey.currentState?.reset();
+    setState(() {
+      _obscurePassword = true;
+    });
+  }
+
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -182,6 +191,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _isLoading
                             ? null
                             : () {
+                                _emailController.clear();
+                                _passwordController.clear();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
