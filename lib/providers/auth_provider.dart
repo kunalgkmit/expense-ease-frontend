@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -57,18 +58,40 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+  Future<Map<String, dynamic>> logout() async {
+    try {
+      if (_refreshToken != null && _refreshToken!.isNotEmpty) {
+        try {
+          final response = await http.post(
+            Uri.parse('http://10.239.255.1:8000/api/logout'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Cookie': 'refreshToken=$_refreshToken',
+            },
+          );
 
-    _userId = null;
-    _username = null;
-    _email = null;
-    _roleId = null;
-    _accessToken = null;
-    _refreshToken = null;
-    _isLoggedIn = false;
+          print('Logout API response: ${response.statusCode}');
+        } catch (apiError) {
+          print('Logout API error: $apiError');
+        }
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
 
-    notifyListeners();
+      _userId = null;
+      _username = null;
+      _email = null;
+      _roleId = null;
+      _accessToken = null;
+      _refreshToken = null;
+      _isLoggedIn = false;
+
+      notifyListeners();
+
+      return {'success': true, 'message': 'Logout successful'};
+    } catch (e) {
+      print('Logout error: $e');
+      return {'success': false, 'message': 'Logout error: ${e.toString()}'};
+    }
   }
 }

@@ -74,13 +74,14 @@ class TransactionService {
   static Future<Map<String, dynamic>> getRecentTransactions({
     required String userId,
     required String token,
+    required int page,
   }) async {
     try {
       print('Fetching recent transactions from: $baseUrl/transactions/recent');
       print('User ID: $userId');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/transactions/recent/$userId'),
+        Uri.parse('$baseUrl/transactions/recent/$userId?page=$page'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

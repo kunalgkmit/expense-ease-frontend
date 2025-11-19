@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:expense_ease_flutter/providers/auth_provider.dart';
 import 'package:expense_ease_flutter/screens/login_screen.dart';
 import 'package:expense_ease_flutter/services/transaction_service.dart';
@@ -20,10 +19,17 @@ class UserDashboard extends StatefulWidget {
 
 class _UserDashboardState extends State<UserDashboard> {
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+
   num _totalBalance = 0;
   num _totalIncome = 0;
   num _totalExpense = 0;
+
   List<Map<String, dynamic>> _transactions = [];
+
+  int _page = 1;
+  int _totalPages = 1;
+  final int _limit = 10;
 
   @override
   void initState() {
@@ -33,17 +39,22 @@ class _UserDashboardState extends State<UserDashboard> {
 
   Future<void> _loadAllData() async {
     if (!mounted) return;
-
     setState(() {
       _isLoading = true;
+      _page = 1;
+      _totalPages = 1;
     });
 
     try {
-      await Future.wait([_loadSummary(), _loadRecentTransactions()]);
+      await Future.wait([
+        _loadSummary(),
+        _loadRecentTransactions(replace: true),
+      ]);
     } catch (e) {
       log(e.toString());
     }
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
@@ -71,7 +82,6 @@ class _UserDashboardState extends State<UserDashboard> {
         setState(() {
           _totalBalance = data['totalBalance'] ?? 0;
           _totalIncome = data['totalIncome'] ?? 0;
-          // Backend returns negative expense, convert to positive for display
           _totalExpense = (data['totalExpense'] ?? 0).abs();
         });
       } else {
@@ -82,17 +92,29 @@ class _UserDashboardState extends State<UserDashboard> {
     }
   }
 
-  Future<void> _loadRecentTransactions() async {
+  Future<void> _loadRecentTransactions({bool replace = false}) async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.userId ?? '';
       final token = authProvider.accessToken ?? '';
 
-      print('Loading recent transactions for userId: $userId');
+      final int fetchPage = replace ? 1 : _page + 1;
+
+      if (replace) {
+        print('Loading recent transactions (page 1) for userId: $userId');
+      } else {
+        print(
+          'Loading recent transactions (page $fetchPage) for userId: $userId',
+        );
+        setState(() {
+          _isLoadingMore = true;
+        });
+      }
 
       final result = await TransactionService.getRecentTransactions(
         userId: userId,
         token: token,
+        page: fetchPage,
       );
 
       print('Recent transactions result: $result');
@@ -100,23 +122,60 @@ class _UserDashboardState extends State<UserDashboard> {
       if (!mounted) return;
 
       if (result['success']) {
-        final List<dynamic> transactions = result['data'];
+        final responseBody = result['data'];
+        final List<dynamic> transactionsArray = responseBody['data'] ?? [];
+        final int respPage = (responseBody['page'] ?? fetchPage) as int;
+        final int respTotalPages = (responseBody['totalPages'] ?? 1) as int;
+
+        final List<Map<String, dynamic>> parsed = transactionsArray
+            .map<Map<String, dynamic>>((t) {
+              double amount;
+              if (t['amount'] is num) {
+                amount = (t['amount'] as num).toDouble();
+              } else {
+                amount =
+                    double.tryParse((t['amount'] ?? '0').toString()) ?? 0.0;
+              }
+
+              return {
+                'id': t['id'] ?? '',
+                'title': t['title'] ?? '',
+                'amount': amount,
+              };
+            })
+            .toList();
+
         setState(() {
-          _transactions = transactions.map((t) {
-            return {
-              'id': t['id'] ?? '',
-              'title': t['title'] ?? '',
-              'amount': double.tryParse(t['amount'] ?? 0) ?? 0,
-            };
-          }).toList();
+          _totalPages = respTotalPages;
+          if (replace) {
+            _page = 1;
+            _transactions = parsed;
+          } else {
+            _page = respPage;
+            _transactions.addAll(parsed);
+          }
         });
-        print('Loaded ${_transactions.length} transactions');
+
+        print(
+          'Loaded ${parsed.length} transactions (page $_page / $_totalPages)',
+        );
       } else {
         print('Failed to load transactions: ${result['message']}');
       }
     } catch (e) {
       print('Error loading transactions: $e');
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingMore = false;
+      });
     }
+  }
+
+  Future<void> _onLoadMorePressed() async {
+    if (_isLoadingMore) return;
+    if (_page >= _totalPages) return;
+    await _loadRecentTransactions(replace: false);
   }
 
   void _showAddTransactionDialog() {
@@ -159,7 +218,10 @@ class _UserDashboardState extends State<UserDashboard> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Welcome, ${authProvider.username ?? "User"}'),
+        title: Text(
+          'Welcome, ${authProvider.username ?? "User"}',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -194,15 +256,12 @@ class _UserDashboardState extends State<UserDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Balance Card Widget
                       BalanceCard(
                         totalBalance: _totalBalance,
                         totalIncome: _totalIncome,
                         totalExpense: _totalExpense,
                       ),
                       const SizedBox(height: 24),
-
-                      // Recent Transactions Header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -221,8 +280,6 @@ class _UserDashboardState extends State<UserDashboard> {
                         ],
                       ),
                       const SizedBox(height: 12),
-
-                      // Transactions List
                       _transactions.isEmpty
                           ? Center(
                               child: Padding(
@@ -254,21 +311,52 @@ class _UserDashboardState extends State<UserDashboard> {
                                 ),
                               ),
                             )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _transactions.length,
-                              itemBuilder: (context, index) {
-                                final transaction = _transactions[index];
-                                return TransactionItem(
-                                  id: transaction['id'],
-                                  title: transaction['title'],
-                                  amount: transaction['amount'],
-                                  onEdit: () => _showEditDialog(transaction),
-                                  onDelete: () =>
-                                      _showDeleteDialog(transaction),
-                                );
-                              },
+                          : Column(
+                              children: [
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _transactions.length,
+                                  itemBuilder: (context, index) {
+                                    final transaction = _transactions[index];
+                                    return TransactionItem(
+                                      id: transaction['id'],
+                                      title: transaction['title'],
+                                      amount: transaction['amount'],
+                                      onEdit: () =>
+                                          _showEditDialog(transaction),
+                                      onDelete: () =>
+                                          _showDeleteDialog(transaction),
+                                    );
+                                  },
+                                ),
+                                if (_isLoadingMore)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12.0,
+                                    ),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                else if (_page < _totalPages)
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: _onLoadMorePressed,
+                                      child: const Text('Load more'),
+                                    ),
+                                  )
+                                else
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 8.0,
+                                    ),
+                                    child: Center(
+                                      child: Text('No more transactions'),
+                                    ),
+                                  ),
+                              ],
                             ),
                     ],
                   ),
