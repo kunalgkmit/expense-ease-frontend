@@ -218,7 +218,10 @@ class _UserDashboardState extends State<UserDashboard> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Welcome, ${authProvider.username ?? "User"}'),
+        title: Text(
+          'Welcome, ${authProvider.username ?? "User"}',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         actions: [
           IconButton(

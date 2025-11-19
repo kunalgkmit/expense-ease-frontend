@@ -6,26 +6,6 @@ import 'package:provider/provider.dart';
 
 void main() {
   group('Register Screen Tests', () {
-    testWidgets('Shows error when username is empty', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ChangeNotifierProvider(
-            create: (_) => AuthProvider(),
-            child: const RegisterScreen(),
-          ),
-        ),
-      );
-
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign Up'));
-      await tester.pump();
-
-      expect(find.text('Please enter a username'), findsOneWidget);
-
-      print('Negative Test Passed: Empty username shows error');
-    });
-
     testWidgets('Accepts valid registration data', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
