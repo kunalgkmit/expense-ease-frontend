@@ -63,7 +63,7 @@ class AuthProvider with ChangeNotifier {
       if (_refreshToken != null && _refreshToken!.isNotEmpty) {
         try {
           final response = await http.post(
-            Uri.parse('http://10.239.255.1:8000/api/logout'),
+            Uri.parse('http://54.227.16.96:8000/api/logout'),
             headers: {
               'Content-Type': 'application/json',
               'Cookie': 'refreshToken=$_refreshToken',
