@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class TransactionService {
-  static const String baseUrl = 'http://54.227.16.96:8000/api';
+  static const String baseUrl = 'http://18.207.152.231:8000/api';
 
   static Future<Map<String, dynamic>> createTransaction({
     required String userId,
