@@ -3,10 +3,12 @@ import 'package:expense_ease_flutter/screens/dashboards/admin_dashboard.dart';
 import 'package:expense_ease_flutter/screens/dashboards/user_dashboard.dart';
 import 'package:expense_ease_flutter/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' show dotenv;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+Future <void> main() async{
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

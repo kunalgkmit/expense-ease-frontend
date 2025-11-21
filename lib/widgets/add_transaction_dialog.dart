@@ -1,6 +1,7 @@
 import 'package:expense_ease_flutter/providers/auth_provider.dart';
 import 'package:expense_ease_flutter/services/transaction_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class AddTransactionDialog extends StatefulWidget {
@@ -108,6 +109,9 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
             ),
             const SizedBox(height: 16),
             TextField(
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(10)
+              ],
               controller: _amountController,
               enabled: !_isLoading,
               decoration: const InputDecoration(

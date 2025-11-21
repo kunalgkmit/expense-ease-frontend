@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,11 +60,12 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<Map<String, dynamic>> logout() async {
+    String baseUrl = dotenv.env['BASE_URL']??'';
     try {
       if (_refreshToken != null && _refreshToken!.isNotEmpty) {
         try {
           final response = await http.post(
-            Uri.parse('http://3.85.14.146:8000/api/logout'),
+            Uri.parse('$baseUrl/logout'),
             headers: {
               'Content-Type': 'application/json',
               'Cookie': 'refreshToken=$_refreshToken',

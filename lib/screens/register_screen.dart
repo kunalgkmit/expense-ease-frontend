@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       try {
         final result = await ApiService.register(
           name: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
+          email: _emailController.text.trim().toLowerCase(),
           password: _passwordController.text,
         );
 

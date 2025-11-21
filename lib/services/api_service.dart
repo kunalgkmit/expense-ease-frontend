@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://3.85.14.146:8000/api';
+  static String baseUrl = dotenv.env['BASE_URL']??'';
 
   static Future<Map<String, dynamic>> register({
     required String name,
