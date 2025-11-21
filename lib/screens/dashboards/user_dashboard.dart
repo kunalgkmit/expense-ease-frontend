@@ -217,7 +217,12 @@ class _UserDashboardState extends State<UserDashboard> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.amber,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
         title: Text(
           'Welcome, ${authProvider.username ?? "User"}',
           style: TextStyle(fontWeight: FontWeight.bold),

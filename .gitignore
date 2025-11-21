@@ -56,3 +56,5 @@ app.*.map.json
 **/ios/Pods/
 **/ios/Podfile.lock
 **/ios/Runner.xcworkspace/
+
+.env

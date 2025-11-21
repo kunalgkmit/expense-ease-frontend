@@ -23,6 +23,7 @@ class TransactionItem extends StatelessWidget {
     final displayAmount = amount.abs();
 
     return Card(
+      color: Colors.blue.shade50,
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

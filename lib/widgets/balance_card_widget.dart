@@ -26,7 +26,7 @@ class BalanceCard extends StatelessWidget {
               'Total Balance',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
