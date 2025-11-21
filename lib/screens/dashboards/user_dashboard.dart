@@ -54,11 +54,11 @@ class _UserDashboardState extends State<UserDashboard> {
     print('Max extent: ${_scrollController.position.maxScrollExtent}');
     print('Current page: $_page, Total pages: $_totalPages');
     print('Is loading more: $_isLoadingMore');
-    
-    if (!_isLoadingMore && 
+
+    if (!_isLoadingMore &&
         _page < _totalPages &&
-        _scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 100) {
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 100) {
       print('TRIGGERING LOAD MORE');
       _onLoadMorePressed();
     }
@@ -271,7 +271,9 @@ class _UserDashboardState extends State<UserDashboard> {
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
                     (route) => false,
                   );
                 }
@@ -292,32 +294,34 @@ class _UserDashboardState extends State<UserDashboard> {
                     ),
                   ),
                   Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Recent Transactions',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.refresh),
-                                    onPressed: _loadAllData,
-                                    tooltip: 'Refresh',
-                                  ),
-                                ],
-                              ),),
-                  
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Recent Transactions',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.refresh),
+                          onPressed: _loadAllData,
+                          tooltip: 'Refresh',
+                        ),
+                      ],
+                    ),
+                  ),
+
                   Expanded(
                     child: NotificationListener<ScrollNotification>(
                       onNotification: (ScrollNotification scrollInfo) {
                         print('🔔 NotificationListener triggered');
                         if (!_isLoadingMore &&
                             _page < _totalPages &&
-                            scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
+                            scrollInfo.metrics.pixels >=
+                                scrollInfo.metrics.maxScrollExtent - 100) {
                           print('✅ Loading more from NotificationListener');
                           _onLoadMorePressed();
                         }
@@ -333,7 +337,8 @@ class _UserDashboardState extends State<UserDashboard> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(32.0),
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             Icons.receipt_long_outlined,
@@ -350,7 +355,8 @@ class _UserDashboardState extends State<UserDashboard> {
                                           ),
                                           const SizedBox(height: 8),
                                           TextButton.icon(
-                                            onPressed: _showAddTransactionDialog,
+                                            onPressed:
+                                                _showAddTransactionDialog,
                                             icon: const Icon(Icons.add),
                                             label: const Text(
                                               'Add your first transaction',
@@ -362,47 +368,57 @@ class _UserDashboardState extends State<UserDashboard> {
                                   ),
                                 )
                               : SliverPadding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
                                   sliver: SliverList(
-                                    delegate: SliverChildBuilderDelegate(
-                                      (context, index) {
-                                        if (index < _transactions.length) {
-                                          final transaction = _transactions[index];
-                                          return TransactionItem(
-                                            id: transaction['id'],
-                                            title: transaction['title'],
-                                            amount: transaction['amount'],
-                                            onEdit: () => _showEditDialog(transaction),
-                                            onDelete: () => _showDeleteDialog(transaction),
+                                    delegate: SliverChildBuilderDelegate((
+                                      context,
+                                      index,
+                                    ) {
+                                      if (index < _transactions.length) {
+                                        final transaction =
+                                            _transactions[index];
+                                        return TransactionItem(
+                                          id: transaction['id'],
+                                          title: transaction['title'],
+                                          amount: transaction['amount'],
+                                          onEdit: () =>
+                                              _showEditDialog(transaction),
+                                          onDelete: () =>
+                                              _showDeleteDialog(transaction),
+                                        );
+                                      } else {
+                                        if (_isLoadingMore) {
+                                          return const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: 16.0,
+                                            ),
+                                            child: Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
                                           );
-                                        } else {
-                                          if (_isLoadingMore) {
-                                            return const Padding(
-                                              padding: EdgeInsets.symmetric(vertical: 16.0),
-                                              child: Center(
-                                                child: CircularProgressIndicator(),
-                                              ),
-                                            );
-                                          } else if (_page >= _totalPages) {
-                                            return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                              child: Center(
-                                                child: Text(
-                                                  'No more transactions',
-                                                  style: TextStyle(
-                                                    color: Colors.grey.shade600,
-                                                    fontSize: 14,
-                                                  ),
+                                        } else if (_page >= _totalPages) {
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16.0,
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                'No more transactions',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 14,
                                                 ),
                                               ),
-                                            );
-                                          } else {
-                                            return const SizedBox(height: 16);
-                                          }
+                                            ),
+                                          );
+                                        } else {
+                                          return const SizedBox(height: 16);
                                         }
-                                      },
-                                      childCount: _transactions.length + 1,
-                                    ),
+                                      }
+                                    }, childCount: _transactions.length + 1),
                                   ),
                                 ),
                         ],
